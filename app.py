@@ -93,7 +93,6 @@ for name, props in equipment.items():
     y_min, y_max = props["y"] - props["size_y"]/2, props["y"] + props["size_y"]/2
     z_min, z_max = props["z"] - props["size_z"]/2, props["z"] + props["size_z"]/2
     
-    # Vollständige Mesh-Eckpunkt-Indizes für eine korrekte 3D-Box
     fig.add_trace(go.Mesh3d(
         x=[x_min, x_max, x_max, x_min, x_min, x_max, x_max, x_min],
         y=[y_min, y_min, y_max, y_max, y_min, y_min, y_max, y_max],
@@ -146,6 +145,7 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
+# --- ENERGIE-AUFTEILUNG ---
 st.subheader("⚡ Detaillierte Energiebilanz nach Prozessstufen")
 ced1, ced2, ced3 = st.columns(3)
 with ced1:
@@ -155,18 +155,36 @@ with ced2:
 with ced3:
     st.warning(f"Dichtesortierung & Ofen: {(power_magnetic + power_knelson + power_table + power_furnace):.1f} kW")
 
+# --- NEUER ABSCHNITT: VERFAHRENSSTECHNISCHER PROZESSFLUSS ---
+st.markdown("---")
+st.subheader("🔄 Verfahrenstechnischer Prozessfluss: Von der Extraktion bis zur Gießerei")
+
+p1, p2, p3, p4 = st.columns(4)
+with p1:
+    st.markdown("#### 1. Extraktion & Grobzerkleinerung")
+    st.write("* **Erz-Zufuhr:** Das Roherz aus der Mine wird im Backenbrecher (Crusher PE250) primär mechanisch gebrochen.")
+    st.write("* **Klassierung:** Das Vibrationssieb trennt den Stoffstrom in Grobgut (>50mm) und Feingut (<50mm).")
+
+with p2:
+    st.markdown("#### 2. Sensorbasierte Sortierung")
+    st.write("* **XRT-Sorter:** Das Grobgut wird per Röntgen-Transmissions-Sensoren analysiert.")
+    st.write("* **Pre-Concentration:** Taubes Gestein ohne Goldanteil wird sofort trocken aussortiert (45% Massenreduktion), um Energie zu sparen.")
+
+with p3:
+    st.markdown("#### 3. Feinmahlung & Separation")
+    st.write("* **Nassmahlung:** In der Kugelmühle wird das Erz unter Wasserzugabe auf eine Zielgröße von P80 = 74 µm feinstvermahlen.")
+    st.write("* **Magnettrennung:** Der WHIMS-Abscheider entfernt störende magnetische Eisen-Verunreinigungen aus dem Schlamm.")
+
+with p4:
+    st.markdown("#### 4. Dichtesortierung & Gießerei")
+    st.write("* **Zentrifugalkonzentrator:** Die Knelson-Zentrifuge trennt das schwere Gold bei 75 G Gravitationskraft effektiv ab.")
+    st.write("* **Anreicherung:** Der Rütteltisch reinigt das Konzentrat auf einen Endgehalt von 55% reines Goldpulver.")
+    st.write("* **Induktionsofen (Foundry):** Bei 1200 °C wird das Pulver zu finalen Gold-Doré-Barren mit 91,2% Reinheit geschmolzen.")
+
+# --- HANDBUCH ALS EINFACHE TEXTZEILEN ---
 st.markdown("---")
 with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Öffnen)"):
     st.write("### Willkommen im digitalen Goldmetallurgie-Labor!")
     st.write("Diese Applikation simuliert eine cyanidfreie, moderne Aufbereitungsanlage für Golderze.")
     st.write("1. **Sidebar:** Nutzen Sie die Schieberegler links, um die Zufuhr-Parameter zu steuern.")
     st.write("2. **3D-Ansicht:** Klicken und ziehen Sie in der Grafik zum Rotieren. Mausrad zum Zoomen.")
-    st.write("3. **Inspektion:** Wählen Sie links eine Komponente aus, um sie im 3D-Modell gelb zu markieren.")
-    st.write("---")
-    st.write("### 🔬 Laborübungen für Studierende")
-    st.write("* **Übung 1:** Finden Sie eine Einstellung mit maximaler Ausbringung bei unter 300 kW Gesamtleistung.")
-    st.write("* **Übung 2:** Vergleichen Sie 15 t/h reiches Erz (10 g/t) mit 30 t/h armem Erz (5 g/t). Die Goldmenge ist gleich, aber der Strombedarf der Mühle verdoppelt sich bei Szenario B!")
-
-## Prüfen, ob wir uns in DWSIM befinden.
-if 'Flowsheet' in globals():
-    generate_web_3d_plant(Flowsheet, output_html_path="index.html")
