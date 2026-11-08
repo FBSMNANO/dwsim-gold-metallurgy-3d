@@ -43,7 +43,7 @@ furnace_temp = 1200
 final_dore_purity = 0.912
 
 # --- BERECHNUNG DER LEISTUNGSAUFNAHME (POWER DEMAND IN kW) ---
-# Stufe 1 & 2: Zerkleinerung & Siebung (Crushing & Screening)
+# Stufe 1 & 2: Zerkleinerung & Siebung
 power_crushing = feed_mass_flow * 2.5
 power_screening = feed_mass_flow * 0.8
 
@@ -53,14 +53,14 @@ power_xrt = coarse_fraction_xrt * 1.5
 # Stufe 4: Mahlung (Ball Mill) - Der größte Energieverbraucher der Anlage
 power_milling = milling_ore_input * 16.2
 
-# Stufe 5 & 6: Magnetabscheider & Knelson-Zentrifuge (Separation)
+# Stufe 5 & 6: Magnetabscheider & Knelson-Zentrifuge
 power_magnetic = clean_pulp_flow * 1.1
 power_knelson = clean_pulp_flow * 2.2
 
 # Stufe 7: Rütteltisch (Shaking Table)
 power_table = gravity_concentrate * 0.5
 
-# Stufe 8: Induktionsofen (Furnace) - Skaliert mit der Schmelzmasse und Zieltemperatur
+# Stufe 8: Induktionsofen (Furnace)
 power_furnace = (final_smelting_powder_mass_kg * 0.8) + 15.0
 
 # Gesamte Leistungsaufnahme der Anlage
@@ -98,11 +98,9 @@ st.sidebar.info(f"**Live-DWSIM-Wert:**\n{equipment[selected_unit]['data']}")
 # --- PLOTLY 3D SZENE ERSTELLEN ---
 fig = go.Figure()
 
-# 1. Apparate als 3D-Blöcke zeichnen
 for name, props in equipment.items():
     color = "#f1c40f" if name == selected_unit else props["color"]
     
-    # 3D Box Koordinaten berechnen
     x_min, x_max = props["x"] - props["size_x"]/2, props["x"] + props["size_x"]/2
     y_min, y_max = props["y"] - props["size_y"]/2, props["y"] + props["size_y"]/2
     z_min, z_max = props["z"] - props["size_z"]/2, props["z"] + props["size_z"]/2
@@ -117,7 +115,6 @@ for name, props in equipment.items():
         color=color, opacity=0.9, name=name, showscale=False
     ))
     
-    # Textlabel hinzufügen
     fig.add_trace(go.Scatter3d(
         x=[props["x"]], y=[props["y"]], z=[z_max + 0.8],
         mode="text", text=[name.split("_", 1)[1]],
@@ -125,7 +122,6 @@ for name, props in equipment.items():
         textfont=dict(color="white", size=11)
     ))
 
-# 2. Rohrleitungen als Linien zeichnen
 def add_pipeline(start, end, color="#bdc3c7", name="Rohr"):
     mid1 = [end[0], start[1], start[2]]
     mid2 = [end[0], end[1], start[2]]
@@ -146,7 +142,6 @@ add_pipeline([5, -2, 1], [10, 2, 1], color="#2980b9", name="WHIMS -> Knelson")
 add_pipeline([10, 2, 1], [5, 8, 0.2], color="#9b59b6", name="Konzentrat -> Rütteltisch")
 add_pipeline([5, 8, 0.2], [-2, 10, 1], color="#f1c40f", name="Goldkonzentrat -> Ofen")
 
-# Layout-Einstellungen für ein dunkles Raum-Design
 fig.update_layout(
     scene=dict(
         xaxis=dict(backgroundcolor="#111", gridcolor="gray", showbackground=True, zerolinecolor="gray"),
@@ -160,10 +155,8 @@ fig.update_layout(
     showlegend=False
 )
 
-# Im Browser anzeigen
 st.plotly_chart(fig, use_container_width=True)
 
-# --- ENERGIE-AUFTEILUNG (ZUSÄTZLICHE INTEGRATION FÜR DIE KLASSE) ---
 st.subheader("⚡ Detaillierte Energiebilanz nach Prozessstufen")
 ced1, ced2, ced3 = st.columns(3)
 with ced1:
@@ -173,7 +166,6 @@ with ced2:
 with ced3:
     st.warning(f"**Dichtesortierung & Ofen:** {(power_magnetic + power_knelson + power_table + power_furnace):.1f} kW")
 
-# --- BENUTZERHANDBUCH & DIDAKTISCHER LEITFADEN ---
 st.markdown("---")
 with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Hier klicken zum Öffnen)"):
     st.markdown("""
@@ -193,3 +185,4 @@ with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Hier klicken z
     
     | Parameteränderung | Auswirkung auf die Gold-Produktion | Auswirkung auf den Strombedarf | Verfahrenstechnische Erklärung |
     | :--- | :--- | :--- | :--- |
+    | **↑ Erzhöhung (Production Rate)** | **Steigt linear** (Mehr Gestein pro Stunde im Prozess) | **Steigt massiv** (Extremer Anstieg in der Kugelmühle) | Ein höherer Durchsatz liefert mehr Gold, benötigt aber drastisch mehr mechanische Zerkleinerungsenergie in der Mühle, da mehr Feststoffmasse zerkleinert werden muss. |
