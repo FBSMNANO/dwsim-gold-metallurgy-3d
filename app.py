@@ -93,30 +93,31 @@ for name, props in equipment.items():
     y_min, y_max = props["y"] - props["size_y"]/2, props["y"] + props["size_y"]/2
     z_min, z_max = props["z"] - props["size_z"]/2, props["z"] + props["size_z"]/2
     
+    # Vollständige Mesh-Eckpunkt-Indizes für eine korrekte 3D-Box
     fig.add_trace(go.Mesh3d(
         x=[x_min, x_max, x_max, x_min, x_min, x_max, x_max, x_min],
         y=[y_min, y_min, y_max, y_max, y_min, y_min, y_max, y_max],
         z=[z_min, z_min, z_min, z_min, z_max, z_max, z_max, z_max],
-        i=,
-        j=,
-        k=,
+        i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 1, 1],
+        j=[3, 4, 1, 2, 5, 6, 7, 3, 0, 1, 2, 3],
+        k=[0, 7, 2, 3, 6, 7, 4, 5, 5, 5, 6, 7],
         color=color, opacity=0.9, name=name, showscale=False
     ))
     
     fig.add_trace(go.Scatter3d(
         x=[props["x"]], y=[props["y"]], z=[z_max + 0.8],
-        mode="text", text=[name.split("_", 1)],
+        mode="text", text=[name.split("_", 1)[1]],
         textposition="top center", showlegend=False,
         textfont=dict(color="white", size=11)
     ))
 
 def add_pipeline(start, end, color="#bdc3c7", name="Rohr"):
-    mid1 = [end, start, start]
-    mid2 = [end, end, start]
+    mid1 = [end[0], start[1], start[2]]
+    mid2 = [end[0], end[1], start[2]]
     fig.add_trace(go.Scatter3d(
-        x=[start, mid1, mid2, end],
-        y=[start, mid1, mid2, end],
-        z=[start, mid1, mid2, end],
+        x=[start[0], mid1[0], mid2[0], end[0]],
+        y=[start[1], mid1[1], mid2[1], end[1]],
+        z=[start[2], mid1[2], mid2[2], end[2]],
         mode="lines", line=dict(color=color, width=6), name=name
     ))
 
@@ -126,9 +127,9 @@ add_pipeline([-10, 4, 0.5], [0, -2, 0.5], color="#34495e", name="Feinmaterial ->
 add_pipeline([-5, 4, 1], [0, -2, 0.5], color="#27ae60", name="XRT Gutstoff -> Mühle")
 add_pipeline([-5, 4, 1], [-5, 0, 0], color="#c0392b", name="XRT Berge -> Halde")
 add_pipeline([0, -2, 0.5], [5, -2, 1], color="#1abc9c", name="Mühle -> Magnetabscheider")
-add_pipeline([5, -2, 1],, color="#2980b9", name="WHIMS -> Knelson")
-add_pipeline(,, color="#9b59b6", name="Konzentrat -> Rütteltisch")
-add_pipeline(, [-2, 10, 1], color="#f1c40f", name="Goldkonzentrat -> Ofen")
+add_pipeline([5, -2, 1], [10, 2, 1], color="#2980b9", name="WHIMS -> Knelson")
+add_pipeline([10, 2, 1], [5, 8, 0.2], color="#9b59b6", name="Konzentrat -> Rütteltisch")
+add_pipeline([5, 8, 0.2], [-2, 10, 1], color="#f1c40f", name="Goldkonzentrat -> Ofen")
 
 fig.update_layout(
     scene=dict(
@@ -145,7 +146,6 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
-# --- ENERGIE-AUFTEILUNG ---
 st.subheader("⚡ Detaillierte Energiebilanz nach Prozessstufen")
 ced1, ced2, ced3 = st.columns(3)
 with ced1:
@@ -155,7 +155,6 @@ with ced2:
 with ced3:
     st.warning(f"Dichtesortierung & Ofen: {(power_magnetic + power_knelson + power_table + power_furnace):.1f} kW")
 
-# --- HANDBUCH ALS EINFACHE TEXTZEILEN (SICHER GEGEN SYSTEM-FEHLER) ---
 st.markdown("---")
 with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Öffnen)"):
     st.write("### Willkommen im digitalen Goldmetallurgie-Labor!")
