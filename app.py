@@ -17,7 +17,7 @@ st.sidebar.header("⚙️ DWSIM Input-Maske")
 feed_mass_flow = st.sidebar.slider("Erz-Zufuhr nominal (t/h)", 5.0, 30.0, 15.0, step=1.0)
 gold_grade_ppm = st.sidebar.slider("Goldgehalt im Roherz (ppm / g/t)", 1.0, 20.0, 5.0, step=0.5)
 
-# --- DWSIM CORE RECHENKERN ---
+# --- DWSIM CORE RECHENKERN & METALLURGISCHE FORMELN ---
 step1_output_mass = feed_mass_flow
 coarse_fraction_xrt = step1_output_mass * 0.60
 fine_fraction_mill = step1_output_mass * 0.40
@@ -42,12 +42,37 @@ final_smelting_powder_mass_kg = (milling_ore_input * (gold_grade_ppm / 1000000.0
 furnace_temp = 1200
 final_dore_purity = 0.912
 
+# --- BERECHNUNG DER LEISTUNGSAUFNAHME (POWER DEMAND IN kW) ---
+# Stufe 1 & 2: Zerkleinerung & Siebung (Crushing & Screening)
+power_crushing = feed_mass_flow * 2.5
+power_screening = feed_mass_flow * 0.8
+
+# Stufe 3: Sensorbasierte Sortierung (XRT Sorter)
+power_xrt = coarse_fraction_xrt * 1.5
+
+# Stufe 4: Mahlung (Ball Mill) - Der größte Energieverbraucher der Anlage
+power_milling = milling_ore_input * 16.2
+
+# Stufe 5 & 6: Magnetabscheider & Knelson-Zentrifuge (Separation)
+power_magnetic = clean_pulp_flow * 1.1
+power_knelson = clean_pulp_flow * 2.2
+
+# Stufe 7: Rütteltisch (Shaking Table)
+power_table = gravity_concentrate * 0.5
+
+# Stufe 8: Induktionsofen (Furnace) - Skaliert mit der Schmelzmasse und Zieltemperatur
+power_furnace = (final_smelting_powder_mass_kg * 0.8) + 15.0
+
+# Gesamte Leistungsaufnahme der Anlage
+total_power = (power_crushing + power_screening + power_xrt + power_milling + 
+               power_magnetic + power_knelson + power_table + power_furnace)
+
 # --- METRIKEN-DASHBOARD ---
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     st.metric(label="Erzdurchsatz Gesamt", value=f"{feed_mass_flow:.1f} t/h")
 with col2:
-    st.metric(label="Trockener Berge-Verwurf (XRT)", value=f"{xrt_waste_mass:.2f} t/h", delta="-45% Masse", delta_color="inverse")
+    st.metric(label="Gesamt-Energiebedarf", value=f"{total_power:.1f} kW", delta=f"Mühle: {power_milling/total_power*100:.0f}% Anteil")
 with col3:
     st.metric(label="Ziel-Partikelgröße (P80)", value=f"{hydrocyclone_overflow_p80} µm")
 with col4:
@@ -55,14 +80,14 @@ with col4:
 
 # --- EQUIPMENT DATENBANK ---
 equipment = {
-    "1_Crusher_PE250":     {"x": -10, "y": 10,  "z": 2, "size_x": 2, "size_y": 2, "size_z": 3, "color": "#7f8c8d", "data": f"Feed: {step1_output_mass:.1f} t/h"},
-    "2_Screen_2YK1230":    {"x": -10, "y": 4,   "z": 1, "size_x": 3, "size_y": 2, "size_z": 1.5, "color": "#95a5a6", "data": f"Siebfläche: 3.6 m²"},
-    "3_XRT_Sorter":        {"x": -5,  "y": 4,   "z": 1, "size_x": 2.5, "size_y": 2.5, "size_z": 2, "color": "#f39c12", "data": f"Verwurf: {xrt_waste_mass:.2f} t/h"},
-    "4_Ball_Mill_MQZ1845": {"x": 0,   "y": -2,  "z": 0.5, "size_x": 4.5, "size_y": 2, "size_z": 2, "color": "#2c3e50", "data": f"Input: {milling_ore_input:.2f} t/h"},
-    "5_Magnetic_WHIMS":    {"x": 5,   "y": -2,  "z": 1, "size_x": 2, "size_y": 2, "size_z": 2.5, "color": "#16a085", "data": f"Feldstärke: 1.2 Tesla"},
-    "6_Knelson_STLB80":    {"x": 10,  "y": 2,   "z": 1, "size_x": 2.2, "size_y": 2.2, "size_z": 2, "color": "#2980b9", "data": f"Beschleunigung: 75 G"},
-    "7_Shaking_Table_6S":  {"x": 5,   "y": 8,   "z": 0.2, "size_x": 4, "size_y": 2, "size_z": 0.6, "color": "#8e44ad", "data": f"Konzentration: {table_au_concentration*100}% Au"},
-    "8_Induction_Furnace": {"x": -2,  "y": 10,  "z": 1, "size_x": 1.6, "size_y": 1.6, "size_z": 2, "color": "#d35400", "data": f"Temperatur: {furnace_temp} °C"}
+    "1_Crusher_PE250":     {"x": -10, "y": 10,  "z": 2, "size_x": 2, "size_y": 2, "size_z": 3, "color": "#7f8c8d", "data": f"Feed: {step1_output_mass:.1f} t/h | Leistung: {power_crushing:.1f} kW"},
+    "2_Screen_2YK1230":    {"x": -10, "y": 4,   "z": 1, "size_x": 3, "size_y": 2, "size_z": 1.5, "color": "#95a5a6", "data": f"Siebfläche: 3.6 m² | Leistung: {power_screening:.1f} kW"},
+    "3_XRT_Sorter":        {"x": -5,  "y": 4,   "z": 1, "size_x": 2.5, "size_y": 2.5, "size_z": 2, "color": "#f39c12", "data": f"Verwurf: {xrt_waste_mass:.2f} t/h | Leistung: {power_xrt:.1f} kW"},
+    "4_Ball_Mill_MQZ1845": {"x": 0,   "y": -2,  "z": 0.5, "size_x": 4.5, "size_y": 2, "size_z": 2, "color": "#2c3e50", "data": f"Input: {milling_ore_input:.2f} t/h | Leistung: {power_milling:.1f} kW"},
+    "5_Magnetic_WHIMS":    {"x": 5,   "y": -2,  "z": 1, "size_x": 2, "size_y": 2, "size_z": 2.5, "color": "#16a085", "data": f"Feldstärke: 1.2 Tesla | Leistung: {power_magnetic:.1f} kW"},
+    "6_Knelson_STLB80":    {"x": 10,  "y": 2,   "z": 1, "size_x": 2.2, "size_y": 2.2, "size_z": 2, "color": "#2980b9", "data": f"Beschleunigung: 75 G | Leistung: {power_knelson:.1f} kW"},
+    "7_Shaking_Table_6S":  {"x": 5,   "y": 8,   "z": 0.2, "size_x": 4, "size_y": 2, "size_z": 0.6, "color": "#8e44ad", "data": f"Konzentration: {table_au_concentration*100}% Au | Leistung: {power_table:.1f} kW"},
+    "8_Induction_Furnace": {"x": -2,  "y": 10,  "z": 1, "size_x": 1.6, "size_y": 1.6, "size_z": 2, "color": "#d35400", "data": f"Temperatur: {furnace_temp} °C | Leistung: {power_furnace:.1f} kW"}
 }
 
 st.sidebar.markdown("---")
@@ -138,14 +163,33 @@ fig.update_layout(
 # Im Browser anzeigen
 st.plotly_chart(fig, use_container_width=True)
 
-st.markdown("""
----
-### 📖 Didaktischer Leitfaden für den Unterricht
-*   **Maussteuerung im 3D-Raum:** Klicken und ziehen Sie mit der linken Maustaste zum Rotieren. Nutzen Sie das Mausrad zum Zoomen.
-*   **Live-Kopplung:** Wenn Sie den Schieberegler in der Sidebar bewegen, berechnet das DWSIM-Skript die Stoffströme neu und aktualisiert sofort die Werte im oberen Dashboard!
-""")
-# Prüfen, ob wir uns in DWSIM befinden. Wenn nicht, wird die Zeile im Web ignoriert.
-if 'Flowsheet' in globals():
-    generate_web_3d_plant(Flowsheet, output_html_path="index.html")
+# --- ENERGIE-AUFTEILUNG (ZUSÄTZLICHE INTEGRATION FÜR DIE KLASSE) ---
+st.subheader("⚡ Detaillierte Energiebilanz nach Prozessstufen")
+ced1, ced2, ced3 = st.columns(3)
+with ced1:
+    st.info(f"**Zerkleinerung & Sortierung:** {(power_crushing + power_screening + power_xrt):.1f} kW")
+with ced2:
+    st.success(f"**Feinmahlung (Kugelmühle):** {power_milling:.1f} kW")
+with ced3:
+    st.warning(f"**Dichtesortierung & Ofen:** {(power_magnetic + power_knelson + power_table + power_furnace):.1f} kW")
 
+# --- BENUTZERHANDBUCH & DIDAKTISCHER LEITFADEN ---
+st.markdown("---")
+with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Hier klicken zum Öffnen)"):
+    st.markdown("""
+    ### Willkommen im digitalen Goldmetallurgie-Labor!
+    Diese Applikation simuliert eine cyanidfreie, moderne Aufbereitungsanlage für Golderze. Als angehende Ingenieurinnen und Ingenieure lernen Sie hier interaktiv die Zusammenhänge zwischen Durchsatz, Erzqualität und dem energetischen Aufwand kennen.
 
+    ---
+
+    ### 🧭 Bedienung der Anwendung
+    1. **Eingabemaske (Sidebar):** Nutzen Sie die Schieberegler auf der linken Seite, um die Anlagenparameter zu steuern.
+    2. **3D-Anlagenansicht:** Klicken und ziehen Sie in der Grafik, um die Anlage im Raum zu rotieren. Nutzen Sie das Mausrad zum Zoomen.
+    3. **Live-Inspektion:** Wählen Sie im linken Dropdown-Menü eine Komponente (z.B. *4_Ball_Mill_MQZ1845*) aus. Sie wird in der 3D-Grafik sofort gelb markiert und die genauen energetischen Live-Massenströme werden angezeigt.
+
+    ---
+
+    ### 🧠 Ursache-Wirkungs-Prinzipien für Studierende
+    
+    | Parameteränderung | Auswirkung auf die Gold-Produktion | Auswirkung auf den Strombedarf | Verfahrenstechnische Erklärung |
+    | :--- | :--- | :--- | :--- |
