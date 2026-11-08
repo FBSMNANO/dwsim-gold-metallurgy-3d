@@ -183,6 +183,9 @@ with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Hier klicken z
 
     ### 🧠 Ursache-Wirkungs-Prinzipien für Studierende
     
-    | Parameteränderung | Auswirkung auf die Gold-Produktion | Auswirkung auf den Strombedarf | Verfahrenstechnische Erklärung |
-    | :--- | :--- | :--- | :--- |
-    | **↑ Erzhöhung (Production Rate)** | **Steigt linear** (Mehr Gestein pro Stunde im Prozess) | **Steigt massiv** (Extremer Anstieg in der Kugelmühle) | Ein höherer Durchsatz liefert mehr Gold, benötigt aber drastisch mehr mechanische Zerkleinerungsenergie in der Mühle, da mehr Feststoffmasse zerkleinert werden muss. |
+    * **↑ Erzhöhung (Production Rate):** Steigt linear (Mehr Gestein pro Stunde im Prozess) | Strombedarf steigt massiv (Extremer Anstieg in der Mühle) -> Ein höherer Durchsatz liefert mehr Gold, benötigt aber drastisch mehr mechanische Zerkleinerungsenergie in der Mühle, da mehr Feststoffmasse zerkleinert werden muss.
+    * **↑ Goldgehalt (Gold Grade):** Steigt linear (Mehr Gold pro Tonne Gestein) | Strombedarf bleibt nahezu unverändert -> Das wirtschaftliche Optimum. Da die Gesteinsmenge identisch bleibt, steigen die Kosten für Zerkleinerung und Transport nicht. Es wird rein die wertvolle Ausbringung vervielfacht.
+
+    ---
+
+    ### 🔬 Praktische Laborübungen
