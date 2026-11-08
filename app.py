@@ -43,27 +43,15 @@ furnace_temp = 1200
 final_dore_purity = 0.912
 
 # --- BERECHNUNG DER LEISTUNGSAUFNAHME (POWER DEMAND IN kW) ---
-# Stufe 1 & 2: Zerkleinerung & Siebung
 power_crushing = feed_mass_flow * 2.5
 power_screening = feed_mass_flow * 0.8
-
-# Stufe 3: Sensorbasierte Sortierung (XRT Sorter)
 power_xrt = coarse_fraction_xrt * 1.5
-
-# Stufe 4: Mahlung (Ball Mill) - Der größte Energieverbraucher der Anlage
 power_milling = milling_ore_input * 16.2
-
-# Stufe 5 & 6: Magnetabscheider & Knelson-Zentrifuge
 power_magnetic = clean_pulp_flow * 1.1
 power_knelson = clean_pulp_flow * 2.2
-
-# Stufe 7: Rütteltisch (Shaking Table)
 power_table = gravity_concentrate * 0.5
-
-# Stufe 8: Induktionsofen (Furnace)
 power_furnace = (final_smelting_powder_mass_kg * 0.8) + 15.0
 
-# Gesamte Leistungsaufnahme der Anlage
 total_power = (power_crushing + power_screening + power_xrt + power_milling + 
                power_magnetic + power_knelson + power_table + power_furnace)
 
@@ -109,26 +97,26 @@ for name, props in equipment.items():
         x=[x_min, x_max, x_max, x_min, x_min, x_max, x_max, x_min],
         y=[y_min, y_min, y_max, y_max, y_min, y_min, y_max, y_max],
         z=[z_min, z_min, z_min, z_min, z_max, z_max, z_max, z_max],
-        i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 1, 1],
-        j=[3, 4, 1, 2, 5, 6, 7, 3, 0, 1, 2, 3],
-        k=[0, 7, 2, 3, 6, 7, 4, 5, 5, 5, 6, 7],
+        i=,
+        j=,
+        k=,
         color=color, opacity=0.9, name=name, showscale=False
     ))
     
     fig.add_trace(go.Scatter3d(
         x=[props["x"]], y=[props["y"]], z=[z_max + 0.8],
-        mode="text", text=[name.split("_", 1)[1]],
+        mode="text", text=[name.split("_", 1)],
         textposition="top center", showlegend=False,
         textfont=dict(color="white", size=11)
     ))
 
 def add_pipeline(start, end, color="#bdc3c7", name="Rohr"):
-    mid1 = [end[0], start[1], start[2]]
-    mid2 = [end[0], end[1], start[2]]
+    mid1 = [end, start, start]
+    mid2 = [end, end, start]
     fig.add_trace(go.Scatter3d(
-        x=[start[0], mid1[0], mid2[0], end[0]],
-        y=[start[1], mid1[1], mid2[1], end[1]],
-        z=[start[2], mid1[2], mid2[2], end[2]],
+        x=[start, mid1, mid2, end],
+        y=[start, mid1, mid2, end],
+        z=[start, mid1, mid2, end],
         mode="lines", line=dict(color=color, width=6), name=name
     ))
 
@@ -138,9 +126,9 @@ add_pipeline([-10, 4, 0.5], [0, -2, 0.5], color="#34495e", name="Feinmaterial ->
 add_pipeline([-5, 4, 1], [0, -2, 0.5], color="#27ae60", name="XRT Gutstoff -> Mühle")
 add_pipeline([-5, 4, 1], [-5, 0, 0], color="#c0392b", name="XRT Berge -> Halde")
 add_pipeline([0, -2, 0.5], [5, -2, 1], color="#1abc9c", name="Mühle -> Magnetabscheider")
-add_pipeline([5, -2, 1], [10, 2, 1], color="#2980b9", name="WHIMS -> Knelson")
-add_pipeline([10, 2, 1], [5, 8, 0.2], color="#9b59b6", name="Konzentrat -> Rütteltisch")
-add_pipeline([5, 8, 0.2], [-2, 10, 1], color="#f1c40f", name="Goldkonzentrat -> Ofen")
+add_pipeline([5, -2, 1],, color="#2980b9", name="WHIMS -> Knelson")
+add_pipeline(,, color="#9b59b6", name="Konzentrat -> Rütteltisch")
+add_pipeline(, [-2, 10, 1], color="#f1c40f", name="Goldkonzentrat -> Ofen")
 
 fig.update_layout(
     scene=dict(
@@ -157,35 +145,29 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
 
+# --- ENERGIE-AUFTEILUNG ---
 st.subheader("⚡ Detaillierte Energiebilanz nach Prozessstufen")
 ced1, ced2, ced3 = st.columns(3)
 with ced1:
-    st.info(f"**Zerkleinerung & Sortierung:** {(power_crushing + power_screening + power_xrt):.1f} kW")
+    st.info(f"Zerkleinerung & Sortierung: {(power_crushing + power_screening + power_xrt):.1f} kW")
 with ced2:
-    st.success(f"**Feinmahlung (Kugelmühle):** {power_milling:.1f} kW")
+    st.success(f"Feinmahlung (Kugelmühle): {power_milling:.1f} kW")
 with ced3:
-    st.warning(f"**Dichtesortierung & Ofen:** {(power_magnetic + power_knelson + power_table + power_furnace):.1f} kW")
+    st.warning(f"Dichtesortierung & Ofen: {(power_magnetic + power_knelson + power_table + power_furnace):.1f} kW")
 
+# --- HANDBUCH ALS EINFACHE TEXTZEILEN (SICHER GEGEN SYSTEM-FEHLER) ---
 st.markdown("---")
-with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Hier klicken zum Öffnen)"):
-    st.markdown("""
-    ### Willkommen im digitalen Goldmetallurgie-Labor!
-    Diese Applikation simuliert eine cyanidfreie, moderne Aufbereitungsanlage für Golderze. Als angehende Ingenieurinnen und Ingenieure lernen Sie hier interaktiv die Zusammenhänge zwischen Durchsatz, Erzqualität und dem energetischen Aufwand kennen.
+with st.expander("📖 Benutzerhandbuch & Didaktischer Leitfaden (Öffnen)"):
+    st.write("### Willkommen im digitalen Goldmetallurgie-Labor!")
+    st.write("Diese Applikation simuliert eine cyanidfreie, moderne Aufbereitungsanlage für Golderze.")
+    st.write("1. **Sidebar:** Nutzen Sie die Schieberegler links, um die Zufuhr-Parameter zu steuern.")
+    st.write("2. **3D-Ansicht:** Klicken und ziehen Sie in der Grafik zum Rotieren. Mausrad zum Zoomen.")
+    st.write("3. **Inspektion:** Wählen Sie links eine Komponente aus, um sie im 3D-Modell gelb zu markieren.")
+    st.write("---")
+    st.write("### 🔬 Laborübungen für Studierende")
+    st.write("* **Übung 1:** Finden Sie eine Einstellung mit maximaler Ausbringung bei unter 300 kW Gesamtleistung.")
+    st.write("* **Übung 2:** Vergleichen Sie 15 t/h reiches Erz (10 g/t) mit 30 t/h armem Erz (5 g/t). Die Goldmenge ist gleich, aber der Strombedarf der Mühle verdoppelt sich bei Szenario B!")
 
-    ---
-
-    ### 🧭 Bedienung der Anwendung
-    1. **Eingabemaske (Sidebar):** Nutzen Sie die Schieberegler auf der linken Seite, um die Anlagenparameter zu steuern.
-    2. **3D-Anlagenansicht:** Klicken und ziehen Sie in der Grafik, um die Anlage im Raum zu rotieren. Nutzen Sie das Mausrad zum Zoomen.
-    3. **Live-Inspektion:** Wählen Sie im linken Dropdown-Menü eine Komponente (z.B. *4_Ball_Mill_MQZ1845*) aus. Sie wird in der 3D-Grafik sofort gelb markiert und die genauen energetischen Live-Massenströme werden angezeigt.
-
-    ---
-
-    ### 🧠 Ursache-Wirkungs-Prinzipien für Studierende
-    
-    * **↑ Erzhöhung (Production Rate):** Steigt linear (Mehr Gestein pro Stunde im Prozess) | Strombedarf steigt massiv (Extremer Anstieg in der Mühle) -> Ein höherer Durchsatz liefert mehr Gold, benötigt aber drastisch mehr mechanische Zerkleinerungsenergie in der Mühle, da mehr Feststoffmasse zerkleinert werden muss.
-    * **↑ Goldgehalt (Gold Grade):** Steigt linear (Mehr Gold pro Tonne Gestein) | Strombedarf bleibt nahezu unverändert -> Das wirtschaftliche Optimum. Da die Gesteinsmenge identisch bleibt, steigen die Kosten für Zerkleinerung und Transport nicht. Es wird rein die wertvolle Ausbringung vervielfacht.
-
-    ---
-
-    ### 🔬 Praktische Laborübungen
+## Prüfen, ob wir uns in DWSIM befinden.
+if 'Flowsheet' in globals():
+    generate_web_3d_plant(Flowsheet, output_html_path="index.html")
