@@ -144,7 +144,8 @@ st.markdown("""
 *   **Maussteuerung im 3D-Raum:** Klicken und ziehen Sie mit der linken Maustaste zum Rotieren. Nutzen Sie das Mausrad zum Zoomen.
 *   **Live-Kopplung:** Wenn Sie den Schieberegler in der Sidebar bewegen, berechnet das DWSIM-Skript die Stoffströme neu und aktualisiert sofort die Werte im oberen Dashboard!
 """)
-# Hier rufen wir die Funktion auf. 
-# Wichtig: "Flowsheet" muss in DWSIM groß geschrieben sein!
-generate_web_3d_plant(Flowsheet, output_html_path="index.html")
+# Prüfen, ob wir uns in DWSIM befinden. Wenn nicht, wird die Zeile im Web ignoriert.
+if 'Flowsheet' in globals():
+    generate_web_3d_plant(Flowsheet, output_html_path="index.html")
+
 
